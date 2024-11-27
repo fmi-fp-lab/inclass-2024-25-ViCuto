@@ -9,6 +9,8 @@
 -- use all your pattern matches!
 {-# OPTIONS_GHC -fwarn-unused-matches #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Replace case with maybe" #-}
 
 module IO where
 
@@ -57,13 +59,26 @@ getLine = do
 -- | EXERCISE
 -- Implement reading an `Integer` from stdin.
 -- Use `readMaybe :: Read a => String -> Maybe a`
+
 getNumber :: IO Integer
-getNumber = undefined
+getNumber = do
+  x <- getLine
+  case readMaybe x of
+    Just y  -> pure y
+    Nothing -> error "Invalid integer"
+
+  
 
 -- | EXERCISE
 -- Implement reading a `Bool` from stdin.
+
 getBool :: IO Bool
-getBool = undefined
+getBool = do
+  x <- getLine
+  case x of
+    "True"  -> pure True
+    "False" -> pure False
+    _ -> error "Invalid bool"
 
 -- | EXERCISE
 -- Implement a function which runs the provided action when
@@ -71,7 +86,9 @@ getBool = undefined
 -- This is actually a common bit in both `getBool` and `getNumber`
 -- and is an overall very useful function.
 whenNothing :: Maybe a -> IO a -> IO a
-whenNothing = undefined
+whenNothing x sth = case x of
+  Nothing -> sth
+  Just y -> pure y
 
 -- | EXERCISE
 -- `getNumber` and `getBool` are practically the same.
@@ -82,8 +99,13 @@ whenNothing = undefined
 -- Note that sometimes when using this function you'll need to specify a type annotation,
 -- because the compiler will not be able to figure out what exactly type you want to read.
 -- e.g. `x <- readLn :: IO Int` to read an `Int`, or similarly you could do `x :: Int <- readLn`
--- readLn :: ??
--- readLn = undefined
+
+readLn :: Read a => IO a
+readLn  = do
+  x <- getLine
+  case readMaybe x of
+    Just value -> pure value
+    Nothing -> error "Invalid"
 
 -- | EXERCISE
 -- Same as `readLn`, but don't error out, returning a `Maybe` instead.
@@ -93,12 +115,16 @@ whenNothing = undefined
 -- | EXERCISE
 -- Run an IO action only when the given `Bool` is @True 2
 when :: Bool -> IO () -> IO ()
-when = undefined
+when x action = if x then action else pure ()
 
 -- | EXERCISE
 -- Repeat a `Maybe a` producing action, until it produces a `Just`, returning the result.
 untilJustM :: IO (Maybe a) -> IO a
-untilJustM = undefined
+untilJustM action = do
+  ma <- action
+  case ma of
+    Just a -> pure a
+    Nothing -> untilJustM action
 
 -- | EXERCISE
 -- We're going to implement a very simplified version of the Hangman game.
@@ -124,8 +150,9 @@ untilJustM = undefined
 -- 1. Ask the player to make a guess for what the word is
 -- 2. If the player guesses the word, we terminate the game and print a cheerful message
 -- 3. Otherwise, we continue playing the game, extending the list of guessed letters.
-startHangman :: FilePath -> IO ()
-startHangman = undefined
+-- startHangman :: FilePath -> IO ()
+-- startHangman x = do
+  
 
 playHangman :: [Char] -> String -> IO ()
 playHangman = undefined
@@ -138,7 +165,7 @@ forever = undefined
 -- | EXERCISE
 -- Map a function over the result of an IO action.
 mapIO :: (a -> b) -> IO a -> IO b
-mapIO = undefined
+mapIO f action =  undefined
 
 -- | EXERCISE
 -- "Lift" a function of two arguments to work over two IO actions instead.

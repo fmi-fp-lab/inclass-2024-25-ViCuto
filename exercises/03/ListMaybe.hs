@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 -- cover all cases!
 {-# OPTIONS_GHC -fwarn-incomplete-patterns #-}
 -- warn about incomplete patterns v2
@@ -9,7 +10,7 @@
 {-# OPTIONS_GHC -fwarn-name-shadowing #-}
 -- use all your pattern matches!
 {-# OPTIONS_GHC -fwarn-unused-matches #-}
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
 {-# HLINT ignore "Unused LANGUAGE pragma" #-}
 {-# HLINT ignore "Use foldr" #-}
 
@@ -68,7 +69,7 @@ sumList (x : xs) = x + sumList xs
 -- 6
 
 replicate :: Integer -> a -> [a]
-replicate 0 x = []
+replicate 0 _ = []
 replicate n x = x : replicate (n - 1) x
 
 -- >>> :t replicate 10 ('a', [(0 :: Integer)])
@@ -88,8 +89,8 @@ replicate n x = x : replicate (n - 1) x
 safeDiv2 :: Integer -> Maybe Integer
 safeDiv2 n =
   if even n
-  then Just $ n `div` 2
-  else Nothing
+    then Just $ n `div` 2
+    else Nothing
 
 -- >>> safeDiv2 4
 -- Just 2
@@ -102,7 +103,6 @@ safeHead' :: [a] -> [a]
 safeHead' (x : _) = [x]
 safeHead' [] = []
 
-
 -- NOTE: try doing some exercises with recursion and some with list comprehension (or both)
 
 -- EXERCISE
@@ -113,7 +113,10 @@ safeHead' [] = []
 -- >>> listFromRange 8 6
 -- []
 listFromRange :: Integer -> Integer -> [Integer]
-listFromRange = undefined
+listFromRange x y =
+  if x > y
+    then []
+    else x : listFromRange (x + 1) y
 
 -- EXERCISE
 -- Multiply all the elements of a list
@@ -123,12 +126,16 @@ listFromRange = undefined
 -- >>> product []
 -- 1
 product :: [Integer] -> Integer
-product = undefined
+product [] = 1
+product (x : xs) = x * product xs
 
 -- EXERCISE
 -- Implement factorial with prod and listFromRange
 fact :: Integer -> Integer
-fact = undefined
+fact x = product $ listFromRange 1 x
+
+-- >>> fact 5
+-- 120
 
 -- EXERCISE
 -- Return a list of the numbers that divide the given number.
@@ -140,7 +147,7 @@ fact = undefined
 -- >>> divisors 24
 -- [1,2,3,4,6,8,12,24]
 divisors :: Integer -> [Integer]
-divisors = undefined
+divisors x = filter (\y -> x `rem` y == 0) (listFromRange 1 x)
 
 -- EXERCISE
 -- Implement prime number checking using listFromRange and divisors
@@ -150,7 +157,7 @@ divisors = undefined
 -- >>> isPrime 8
 -- False
 isPrime :: Integer -> Bool
-isPrime = undefined
+isPrime x = length (divisors x) == 2
 
 -- EXERCISE
 -- Get the last element in a list.
@@ -160,7 +167,9 @@ isPrime = undefined
 -- >>> lastMaybe [1,2,3]
 -- Just 3
 lastMaybe :: [a] -> Maybe a
-lastMaybe = undefined
+lastMaybe [] = Nothing
+lastMaybe [a] = Just a
+lastMaybe (_ : as) = lastMaybe as
 
 -- EXERCISE
 -- Calculate the length of a list.
@@ -170,7 +179,8 @@ lastMaybe = undefined
 -- >>> length []
 -- 0
 length :: [a] -> Integer
-length = undefined
+length [] = 0
+length (_ : as) = 1 + length as
 
 -- EXERCISE
 -- Return the nth element from a list (we count from 0).
@@ -181,7 +191,9 @@ length = undefined
 -- >>> ix 3 [1,42,69]
 -- Nothing
 ix :: Integer -> [a] -> Maybe a
-ix = undefined
+ix _ [] = Nothing
+ix 0 (a : _) = Just a
+ix i (_ : as) = ix (i - 1) as
 
 -- EXERCISE
 -- "Drop" the first n elements of a list.
@@ -192,7 +204,9 @@ ix = undefined
 -- >>> drop 20 $ listFromRange 1 10
 -- []
 drop :: Integer -> [a] -> [a]
-drop = undefined
+drop _ [] = []
+drop 0 a = a
+drop n (_ : as) = drop (n - 1) as
 
 -- EXERCISE
 -- "Take" the first n elements of a list.
@@ -203,7 +217,9 @@ drop = undefined
 -- >>> take 20 $ listFromRange 1 10
 -- [1,2,3,4,5,6,7,8,9,10]
 take :: Integer -> [a] -> [a]
-take = undefined
+take _ [] = []
+take 0 _ = []
+take n (a : as) = a : take (n - 1) as
 
 -- EXERCISE
 -- Append one list to another. append [1,2,3] [4,5,6] == [1,2,3,4,5,6]
@@ -332,9 +348,13 @@ lift2List = undefined
 -- >>> filter even [1..10]
 -- [2,4,6,8,10]
 -- >>> filter isPrime [1..20]
--- [2,3,5,7,11,13,17,19]
+-- Prelude.undefined
 filter :: (a -> Bool) -> [a] -> [a]
-filter = undefined
+filter _ [] = []
+filter b (a : as) =
+  if not $ b a
+    then filter b as
+    else a : filter b as
 
 data Digit
   = Zero

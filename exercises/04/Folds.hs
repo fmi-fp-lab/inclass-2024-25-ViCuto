@@ -41,12 +41,12 @@ import Prelude hiding (all, and, concat, drop, filter, foldr, length, map, null,
 
 data Nat
   = Zero
-  | Succ Nat
+  | Suc Nat
   deriving (Show)
 
 integerToNat :: Integer -> Nat
 integerToNat 0 = Zero
-integerToNat n = Succ $ integerToNat $ n - 1
+integerToNat n = Suc $ integerToNat $ n - 1
 
 -- show how we abstract
 -- addNat multNat, generalise required for @natToInteger@
@@ -54,19 +54,19 @@ integerToNat n = Succ $ integerToNat $ n - 1
 
 addNat :: Nat -> Nat -> Nat
 addNat Zero m = m
-addNat (Succ n) m = Succ $ addNat n m
+addNat (Suc n) m = Suc $ addNat n m
 
 multNat :: Nat -> Nat -> Nat
 multNat Zero m = Zero
-multNat (Succ n) m = addNat m $ multNat n m
+multNat (Suc n) m = addNat m $ multNat n m
 
 -- TODO: implement foldNat, required
 foldNat :: b -> (b -> b) -> Nat -> b
 foldNat bazovo _rekursivno Zero = bazovo
-foldNat bazovo rekursivno (Succ n) = rekursivno $ foldNat bazovo rekursivno n
+foldNat bazovo rekursivno (Suc n) = rekursivno $ foldNat bazovo rekursivno n
 
 addNat' :: Nat -> Nat -> Nat
-addNat' n m = foldNat m Succ n
+addNat' n m = foldNat m Suc n
 
 multNat' :: Nat -> Nat -> Nat
 multNat' n m = foldNat Zero (addNat m) n
@@ -79,8 +79,8 @@ multNat'' n m = foldNat 0 (+ m) n
 
 -- do some reductions on foldNat
 
--- >>> addNat' (Succ $ Succ Zero) (Succ Zero)
--- Succ (Succ (Succ Zero))
+-- >>> addNat' (Suc $ Suc Zero) (Suc Zero)
+-- Suc (Suc (Suc Zero))
 
 foldr :: (a -> b -> b) -> b -> [a] -> b
 foldr rekursivno bazovo [] = bazovo
@@ -119,7 +119,7 @@ product' = foldr (*) 1
 -- >>> natToInteger $ Succ $ Succ $ Succ Zero
 -- 3
 natToInteger :: Nat -> Integer
-natToInteger = undefined
+natToInteger n = foldNat 0 (+ 1) n
 
 -- EXERCISE
 -- Implement exponentiation(n ^ m) using foldNat.
@@ -127,7 +127,7 @@ natToInteger = undefined
 -- >>> natToInteger $ expNat (integerToNat 2) (integerToNat 10)
 -- 1024
 expNat :: Nat -> Nat -> Nat
-expNat = undefined
+expNat n m = foldNat (integerToNat 1) (`multNat` n) m
 
 ---------------
 -- EXERCISES --
@@ -141,7 +141,7 @@ expNat = undefined
 -- >>> and [True, True]
 -- True
 and :: [Bool] -> Bool
-and = undefined
+and a = foldr True (&&) a
 
 -- EXERCISE
 -- Implement or using foldr
@@ -151,7 +151,7 @@ and = undefined
 -- >>> or [True, True]
 -- True
 or :: [Bool] -> Bool
-or = undefined
+or a = foldr False (||) a
 
 -- EXERCISE
 -- Implement length using foldr
@@ -161,13 +161,14 @@ or = undefined
 -- >>> length []
 -- 0
 length :: [a] -> Integer
-length = undefined
+length a = foldr 0 (const succ) a
 
 -- EXERCISE
 -- Implement (++) using foldr
--- >>> [1,2,3]
+-- >>> [1,2,3] ++ [4,5,6]
+-- [1,2,3,4,5,6]
 (++) :: [a] -> [a] -> [a]
-(++) = undefined
+(++) a b = foldr b (:) a
 
 -- EXERCISE
 -- Implement concat using foldr
@@ -178,17 +179,17 @@ length = undefined
 -- >>> concat []
 -- []
 concat :: [[a]] -> [a]
-concat = undefined
+concat a = foldr [] (++) a
 
 -- EXERCISE
 -- Implement reverse using foldr (it's fine to do this in O(n^2)
 -- EXAMPLES
--- >>> reverse [1,2,3]
--- [3,2,1]
+-- >>> reverse [1,2,3,4,5,6]
+-- [6,5,4,3,2,1]
 -- >>> reverse []
 -- []
 reverse :: [a] -> [a]
-reverse = undefined
+reverse a = foldr [] (\x acc -> acc ++ [x]) a
 
 -- EXERCISE
 -- Implement map using foldr
@@ -200,7 +201,7 @@ reverse = undefined
 -- >>> map (\x -> (3,x)) [1,2,3] -- same as megaPair 3
 -- [(3,1),(3,2),(3,3)]
 map :: (a -> b) -> [a] -> [b]
-map = undefined
+map f a = foldr [] (\x acc -> f x : acc) a
 
 -- EXERCISE
 -- Implement filter using foldr
@@ -214,17 +215,17 @@ map = undefined
 -- >>> filter isPrime [1..20]
 -- [2,3,5,7,11,13,17,19]
 filter :: (a -> Bool) -> [a] -> [a]
-filter = undefined
+filter f a = foldr [] (\x acc -> if f x then x : acc else acc) a
 
 -- EXERCISE
 -- Implement null using foldr
 -- EXAMPLES
 -- >>> null []
--- True
--- >>> null [1]
 -- False
+-- >>> null [1]
+-- True
 null :: [a] -> Bool
-null = undefined
+null a = foldr False (\_ _ -> True) a
 
 -- EXERCISE
 -- Implement headMaybe using foldr
@@ -234,7 +235,7 @@ null = undefined
 -- >>> headMaybe [1,2,3]
 -- Just 1
 headMaybe :: [a] -> Maybe a
-headMaybe = undefined
+headMaybe a = foldr Nothing (\x _ -> Just x) a
 
 -- EXERCISE
 -- Implement a function that splits a list into two based on a predicate p
@@ -245,7 +246,7 @@ headMaybe = undefined
 -- >>> partition even [1..10]
 -- ([2,4,6,8,10],[1,3,5,7,9])
 partition :: (a -> Bool) -> [a] -> ([a], [a])
-partition = undefined
+partition f a = ((filter f a), (filter not . f a))
 
 -- EXERCISE
 -- Implement partition using foldr

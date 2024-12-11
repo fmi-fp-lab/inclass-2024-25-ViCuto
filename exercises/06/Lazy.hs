@@ -132,7 +132,7 @@ nats :: [Integer]
 nats = undefined
 
 -- EXERCISE
--- Generate an infinite list of numbers, starting with the given number, with the given interval between each numbe.
+-- Generate an infinite list of numbers, starting with the given number, with the given interval between each number.
 -- EXAMPLES
 -- >>> take 10 $ fromThen 0 1
 -- [0,1,2,3,4,5,6,7,8,9]
